@@ -1,39 +1,50 @@
 require("dotenv").config();
 const ccxt = require("ccxt");
+const axios = require ('axios');
 const TradingView = require("@mathieuc/tradingview");
 const client = new TradingView.Client();
 const getData = require("./indicator.js");
 
 
-const tick = async (config, binanceClient) =>{
-    const { asset, base } = config;
-    const market = `${asset}/${base}`;
-    console.log(config)
+async function tick () {
+    binanceClient = new ccxt.binanceusdm({
+        apiKey: process.env.API_KEY,
+        secret: process.env.API_SECRET,
+    });
+
+    //const { asset, base } = config;
+    //const market = `${asset}/${base}`;
+    //console.log(config)
+    const market = 'ETH/BUSD'
     data = await getData(TradingView, client);
     console.log('MediumCycleTop: ' + data['MediumCycleTop'])
     console.log("MediumCycleBottom: " + data['MediumCycleBottom'])
-    params = {
+    paramsLong = {
         'positionSide': 'LONG' 
     }  
-    await binanceClient.createOrder(market, 'limit', 'buy', 0.01, data['MediumCycleBottom'], params);
-    //await binanceClient.createLimitSellOrder(market, 0.01, data['MediumCycleTop']);
-};
-
-const run = async() => {
-    const config = {
-        asset: "ETH",
-        base: "BUSD",
-        //allocation: 0.1,
-        //spread: 0.2,
-        //tickInterval: 60 * 1000,
-    };
-    const binanceClient = new ccxt.binanceusdm({
-        apiKey: process.env.API_KEY,
-        secret: process.env.API_SECRET,
-        //hedgeMode: True,
+    paramsShort = {
+        'positionSide': 'SHORT' 
+    }
+    const orders = await binanceClient.fetchOpenOrders(symbol=market);
+    orders.forEach(async order => {
+        await binanceClient.cancelOrder(order.id, order.symbol);
+        console.log(order)
     });
 
-    tick(config, binanceClient)
+
+
+    
+    
+    //binanceClient.cancelAllOrders(symbol = 'ETH/BUSD', params = {})
+    await binanceClient.createOrder(market, 'limit', 'buy', 10/data['MediumCycleBottom'], data['MediumCycleBottom'], paramsLong)
+    
+
+    //close_position = binance.create_order(symbol=symbol, type="MARKET", side="buy", amount=pos['positionAmt'], params={"reduceOnly": True}) 
+    //await binanceClient.createLimitSellOrder(market, 0.01, data['MediumCycleTop']);
+};
+//fetchTicker(market)
+const run = async() => {
+    tick()
     setInterval(tick, 60*1000)
 };
 

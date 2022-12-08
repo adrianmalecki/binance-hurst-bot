@@ -1,7 +1,7 @@
 async function getData(tradingView, client) {
     const chart = new client.Session.Chart();
     chart.setMarket("BINANCE:ETHPERP", {
-      timeframe: "240",
+      timeframe: "15",
       range: 2,
     });
   
