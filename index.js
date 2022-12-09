@@ -6,7 +6,7 @@ const client = new TradingView.Client();
 const getData = require("./indicator.js");
 let longMore = 0;
 let shortMore = 0;
-const kwota = 12;
+const kwota = 16;
 let jeden = 0;
 let dwa = 0;
 let trzy = 0;
@@ -51,7 +51,20 @@ async function tick () {
     if (so == false) {          
         await binanceClient.createOrder(market, 'limit', 'sell', kwota/data['MediumCycleTop'], data['MediumCycleTop'], paramsShort)
     }
-      
+   //////// 
+    positions.forEach(async pos => {
+        if (pos.side === 'long') {
+            if(kwota/data['MediumCycleBottom']-pos.contracts > 0){
+                await binanceClient.createOrder(market, 'limit', 'buy', kwota/data['MediumCycleBottom']-pos.contracts, data['MediumCycleBottom'], paramsLong)
+            }
+        }
+        if (pos.side === 'short') {
+            if(kwota/data['MediumCycleTop']+pos.contracts < 0){
+                await binanceClient.createOrder(market, 'limit', 'sell', kwota/data['MediumCycleTop']+pos.contracts, data['MediumCycleTop'], paramsShort)
+            }  
+        }
+    });
+      /////////////////
     
     if(FastOsc <= -0.5){
         longMore = 1;
@@ -62,7 +75,8 @@ async function tick () {
         positions.forEach(async pos => {
             if (pos.side === 'short') {
                 console.log('dwefrgtw')
-                await binanceClient.createOrder(market, 'TAKE_PROFIT_MARKET', 'buy', pos.contracts, params = {'positionSide': 'LONG'});
+                //await binanceClient.createOrder(market, 'TAKE_PROFIT_MARKET', 'buy', pos.contracts, params = {'positionSide': 'LONG'});
+                await binanceClient.createOrder(market, 'limit', 'but', pos.contracts, data['MediumCycleTop'], paramsShort)
             }
             if (pos.side === 'long') {
                 longMore = 0
@@ -87,7 +101,8 @@ async function tick () {
         positions.forEach(async pos => {
             if (pos.side === 'long') {
                 console.log('d')
-                await binanceClient.createOrder(market, 'TAKE_PROFIT_MARKET', 'sell', pos.contracts, params = {'positionSide': 'LONG'});
+                //await binanceClient.createOrder(market, 'TAKE_PROFIT_MARKET', 'sell', pos.contracts, params = {'positionSide': 'LONG'});
+                await binanceClient.createOrder(market, 'limit', 'sell', pos.contracts, data['MediumCycleBottom'], paramsLong)
             }
             if (pos.side === 'short') {
                 shortMore = 0
@@ -105,14 +120,12 @@ async function tick () {
     //dodac zmienną ze sie wykonało?
     positions.forEach(async pos => {
         if (pos.side === 'long') {
-            if(pos.contracts * data['MediumCycleBottom'] > 0.85 * kwota){
-                console.log('ewfewwww')
+            if(pos.contracts * data['MediumCycleTop'] > 0.85 * kwota){
                 await binanceClient.createOrder(market, 'TAKE_PROFIT', 'sell', pos.contracts/2, price = data['MediumCycleTop'], params = {'stopPrice': price, 'positionSide': 'LONG'});
             }
         }
         if (pos.side === 'short') {
-            if(-pos.contracts * data['MediumCycleBottom'] > 0.85 * kwota){
-                console.log('fbtryu')
+            if(pos.contracts * data['MediumCycleBottom'] > 0.85 * kwota){
                 await binanceClient.createOrder(market, 'TAKE_PROFIT', 'buy', pos.contracts/2, price = data['MediumCycleBottom'], params = {'stopPrice': price, 'positionSide': 'SHORT'});
             }  
         }
