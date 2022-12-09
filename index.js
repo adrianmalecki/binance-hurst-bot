@@ -6,7 +6,7 @@ const client = new TradingView.Client();
 const getData = require("./indicator.js");
 const longMore = 0;
 const shortMore = 0;
-const kwota = 10;
+const kwota = 25;
 
 async function tick () {
     binanceClient = new ccxt.binanceusdm({
@@ -47,6 +47,13 @@ async function tick () {
 
     if(longMore == 1 && FastOsc >= 0){
         await binanceClient.createOrder(market, 'market', 'buy', kwota/data['MediumCycleBottom'], paramsLong)
+
+        const positionsL = await binanceClient.fetchPositions(symbols=[market])
+        positionsL.forEach(async pos => {
+            if (pos.side === 'short') {
+                await binanceClient.createOrder(market, 'TAKE_PROFIT_MARKET', 'buy', pos.contracts, params = {'positionSide': 'LONG'});
+            }
+        });
         longMore = 0
     }
 
@@ -61,20 +68,23 @@ async function tick () {
 
     if(shortMore == 1 && FastOsc <= 1){
         await binanceClient.createOrder(market, 'market', 'sell', kwota/data['MediumCycleTop'], paramsShort)
+
+        const positionsS = await binanceClient.fetchPositions(symbols=[market])
+        positionsS.forEach(async pos => {
+            if (pos.side === 'long') {
+                await binanceClient.createOrder(market, 'TAKE_PROFIT_MARKET', 'sell', pos.contracts, params = {'positionSide': 'LONG'});
+            }
+        });
         shortMore = 0
     }
 
     const positions = await binanceClient.fetchPositions(symbols=[market])
     positions.forEach(async pos => {
-        console.log(pos)
         if (pos.side === 'long') {
-            console.log('in1')
-            console.log(pos.contracts/2)
             await binanceClient.createOrder(market, 'TAKE_PROFIT', 'sell', pos.contracts/2, price = data['MediumCycleTop'], params = {'stopPrice': price, 'positionSide': 'LONG'});
         }
         if (pos.side === 'short') {
-            //console.log('in2')
-            //console.log(await binanceClient.createOrder(market, 'market', side = 'buy',  amount = kwota, { 'reduceOnly': true}));
+            await binanceClient.createOrder(market, 'TAKE_PROFIT', 'buy', pos.contracts/2, price = data['MediumCycleBottom'], params = {'stopPrice': price, 'positionSide': 'SHORT'});
         }
     });
 };
