@@ -30,12 +30,6 @@ async function tick () {
         await binanceClient.cancelOrder(order.id, order.symbol);
         console.log(order)
     });
-
-
-
-    
-    
-    //binanceClient.cancelAllOrders(symbol = 'ETH/BUSD', params = {})
     await binanceClient.createOrder(market, 'limit', 'buy', 10/data['MediumCycleBottom'], data['MediumCycleBottom'], paramsLong)
     
 
@@ -45,7 +39,11 @@ async function tick () {
 //fetchTicker(market)
 const run = async() => {
     tick()
-    setInterval(tick, 60*1000)
+
+    const d = new Date();
+    const minutes = 15 - (d.getMinutes() % 15);
+
+    setInterval(tick, minutes*60*1000)
 };
 
 
