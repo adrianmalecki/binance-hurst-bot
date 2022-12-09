@@ -6,7 +6,7 @@ const client = new TradingView.Client();
 const getData = require("./indicator.js");
 const longMore = 0;
 const shortMore = 0;
-const amount = 10;
+const kwota = 10;
 
 async function tick () {
     binanceClient = new ccxt.binanceusdm({
@@ -24,13 +24,13 @@ async function tick () {
     const FastOsc = data['FastOsc']
     console.log("FastOsc: " + FastOsc)
     paramsLong = {
-        'positionSide': 'LONG' 
+        'positionSide': 'LONG'
     }  
     paramsShort = {
-        'positionSide': 'SHORT' 
+        'positionSide': 'SHORT'
     }
 
-    const pos = await binanceClient.fetchPositions(symbols=[market])
+    
 
     //ETHBUSD
     const orders = await binanceClient.fetchOpenOrders(symbol=market);
@@ -39,32 +39,44 @@ async function tick () {
     });
     
     //LONG 
-    await binanceClient.createOrder(market, 'limit', 'buy', amount/data['MediumCycleBottom'], data['MediumCycleBottom'], paramsLong)
+    await binanceClient.createOrder(market, 'limit', 'buy', kwota/data['MediumCycleBottom'], data['MediumCycleBottom'], paramsLong)
     
     if(FastOsc <= -0.5){
         longMore = 1;
     }
 
     if(longMore == 1 && FastOsc >= 0){
-        await binanceClient.createOrder(market, 'market', 'buy', amount/data['MediumCycleBottom'], paramsLong)
+        await binanceClient.createOrder(market, 'market', 'buy', kwota/data['MediumCycleBottom'], paramsLong)
         longMore = 0
     }
 
-    //close_position = await binanceClient.createOrder(symbol=market, type="MARKET", side="buy", amount=pos['positionAmt']/2, params={"reduceOnly": True}) 
+    //close_position = await binanceClient.closeLong(symbol=market, type="MARKET", kwota/2) 
 
     //SHORT
-    await binanceClient.createOrder(market, 'limit', 'sell', amount/data['MediumCycleTop'], data['MediumCycleTop'], paramsShort)
+    await binanceClient.createOrder(market, 'limit', 'sell', kwota/data['MediumCycleTop'], data['MediumCycleTop'], paramsShort)
     
     if(FastOsc >= 1.5){
         shortMore = 1;
     }
 
     if(shortMore == 1 && FastOsc <= 1){
-        await binanceClient.createOrder(market, 'market', 'sell', amount/data['MediumCycleTop'], paramsShort)
+        await binanceClient.createOrder(market, 'market', 'sell', kwota/data['MediumCycleTop'], paramsShort)
         shortMore = 0
     }
 
-    
+    const positions = await binanceClient.fetchPositions(symbols=[market])
+    positions.forEach(async pos => {
+        console.log(pos)
+        if (pos.side === 'long') {
+            console.log('in1')
+            console.log(pos.contracts/2)
+            await binanceClient.createOrder(market, 'TAKE_PROFIT', 'sell', pos.contracts/2, price = data['MediumCycleTop'], params = {'stopPrice': price, 'positionSide': 'LONG'});
+        }
+        if (pos.side === 'short') {
+            //console.log('in2')
+            //console.log(await binanceClient.createOrder(market, 'market', side = 'buy',  amount = kwota, { 'reduceOnly': true}));
+        }
+    });
 };
 const run = async() => {
     tick()
