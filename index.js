@@ -25,7 +25,7 @@ async function tick () {
 
 
     const market = 'ETH/BUSD'
-    data = await getData(TradingView, client);
+    data = await getData(TradingView, client, interwal);
     console.log('MediumCycleTop: ' + data['MediumCycleTop'])
     console.log("MediumCycleBottom: " + data['MediumCycleBottom'])
     const FastOsc = data['FastOsc']
