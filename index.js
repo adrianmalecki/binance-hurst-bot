@@ -71,7 +71,7 @@ async function tick () {
     });
       /////////////////
     
-    if(FastOsc <= -0.5){
+    if(FastOsc <= -0.75){
         longMore = 1;
     }
     console.log("LM: " + longMore)
@@ -99,7 +99,7 @@ async function tick () {
         
     }
     
-    if(FastOsc >= 1.5){
+    if(FastOsc >= 1.75){
         shortMore = 1;
     }
     console.log("SM: " + shortMore)
