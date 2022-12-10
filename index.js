@@ -54,12 +54,12 @@ async function tick () {
    //////// 
     positions.forEach(async pos => {
         if (pos.side === 'long') {
-            if(kwota/data['MediumCycleBottom']-pos.contracts > 0){
+            if(data['MediumCycleBottom']*(kwota/data['MediumCycleBottom']-pos.contracts) > 5){
                 await binanceClient.createOrder(market, 'limit', 'buy', kwota/data['MediumCycleBottom']-pos.contracts, data['MediumCycleBottom'], paramsLong)
             }
         }
         if (pos.side === 'short') {
-            if(kwota/data['MediumCycleTop']+pos.contracts < 0){
+            if(-kwota/data['MediumCycleTop']*(kwota/data['MediumCycleTop']+pos.contracts) > 5){
                 await binanceClient.createOrder(market, 'limit', 'sell', kwota/data['MediumCycleTop']+pos.contracts, data['MediumCycleTop'], paramsShort)
             }  
         }
@@ -121,12 +121,12 @@ async function tick () {
     positions.forEach(async pos => {
         if (pos.side === 'long') {
             if(pos.contracts * data['MediumCycleTop'] > 0.85 * kwota){
-                await binanceClient.createOrder(market, 'TAKE_PROFIT', 'sell', pos.contracts/2, price = data['MediumCycleTop'], params = {'stopPrice': price, 'positionSide': 'LONG'});
+                await binanceClient.createOrder(market, 'TAKE_PROFIT', 'sell', pos.contracts/2, price = 0.99*data['MediumCycleTop'], params = {'stopPrice': data['MediumCycleTop'], 'positionSide': 'LONG'});
             }
         }
         if (pos.side === 'short') {
-            if(pos.contracts * data['MediumCycleBottom'] > 0.85 * kwota){
-                await binanceClient.createOrder(market, 'TAKE_PROFIT', 'buy', pos.contracts/2, price = data['MediumCycleBottom'], params = {'stopPrice': price, 'positionSide': 'SHORT'});
+            if(-pos.contracts * data['MediumCycleBottom'] > 0.85 * kwota){
+                await binanceClient.createOrder(market, 'TAKE_PROFIT', 'buy', pos.contracts/2, price = 1.01*data['MediumCycleBottom'], params = {'stopPrice': data['MediumCycleBottom'], 'positionSide': 'SHORT'});
             }  
         }
     });
