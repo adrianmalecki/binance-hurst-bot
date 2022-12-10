@@ -76,7 +76,7 @@ async function tick () {
             if (pos.side === 'short') {
                 console.log('dwefrgtw')
                 //await binanceClient.createOrder(market, 'TAKE_PROFIT_MARKET', 'buy', pos.contracts, params = {'positionSide': 'LONG'});
-                await binanceClient.createOrder(market, 'limit', 'but', pos.contracts, data['MediumCycleTop'], paramsShort)
+                await binanceClient.createOrder(market, 'limit', 'buy', pos.contracts, data['MediumCycleTop'], paramsShort)
             }
             if (pos.side === 'long') {
                 longMore = 0
