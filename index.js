@@ -12,6 +12,10 @@ let dwa = 0;
 let trzy = 0;
 let cztery = 0;
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function tick () {
     binanceClient = new ccxt.binanceusdm({
         apiKey: process.env.API_KEY,
@@ -59,8 +63,8 @@ async function tick () {
             }
         }
         if (pos.side === 'short') {
-            if(-kwota/data['MediumCycleTop']*(kwota/data['MediumCycleTop']+pos.contracts) > 5){
-                await binanceClient.createOrder(market, 'limit', 'sell', kwota/data['MediumCycleTop']+pos.contracts, data['MediumCycleTop'], paramsShort)
+            if(kwota/data['MediumCycleTop']*(kwota/data['MediumCycleTop']-pos.contracts) > 5){
+                await binanceClient.createOrder(market, 'limit', 'sell', kwota/data['MediumCycleTop']-pos.contracts, data['MediumCycleTop'], paramsShort)
             }  
         }
     });
@@ -106,8 +110,9 @@ async function tick () {
             }
             if (pos.side === 'short') {
                 shortMore = 0
-                if(-pos.contracts * data['MediumCycleBottom'] < 1.5 * kwota){
+                if(pos.contracts * data['MediumCycleBottom'] < 1.5 * kwota){
                     console.log('dww')
+                    console.log(pos)
                     shortMore = 0
                     await binanceClient.createOrder(market, 'limit', 'sell', kwota/data['MediumCycleTop'], 0.98*data['MediumCycleTop'], paramsShort)
                     
@@ -121,12 +126,16 @@ async function tick () {
     positions.forEach(async pos => {
         if (pos.side === 'long') {
             if(pos.contracts * data['MediumCycleTop'] > 0.85 * kwota){
-                await binanceClient.createOrder(market, 'TAKE_PROFIT', 'sell', pos.contracts/2, price = 0.99*data['MediumCycleTop'], params = {'stopPrice': data['MediumCycleTop'], 'positionSide': 'LONG'});
+                //await binanceClient.createOrder(market, 'TAKE_PROFIT', 'sell', pos.contracts/2, price = 0.99*data['MediumCycleTop'], params = {'stopPrice': data['MediumCycleTop'], 'positionSide': 'LONG'});
+                //await binanceClient.createOrder(market, 'TAKE_PROFIT_MARKET', 'sell', pos.contracts/2, params = {'positionSide': 'LONG'});
+                await binanceClient.createOrder(market, 'limit', 'sell', pos.contracts/2, data['MediumCycleTop'], paramsLong)
             }
         }
         if (pos.side === 'short') {
-            if(-pos.contracts * data['MediumCycleBottom'] > 0.85 * kwota){
-                await binanceClient.createOrder(market, 'TAKE_PROFIT', 'buy', pos.contracts/2, price = 1.01*data['MediumCycleBottom'], params = {'stopPrice': data['MediumCycleBottom'], 'positionSide': 'SHORT'});
+            if(pos.contracts * data['MediumCycleBottom'] > 0.85 * kwota){
+                //await binanceClient.createOrder(market, 'TAKE_PROFIT', 'buy', pos.contracts/2, price = 1.01*data['MediumCycleBottom'], params = {'stopPrice': data['MediumCycleBottom'], 'positionSide': 'SHORT'});
+                //await binanceClient.createOrder(market, 'TAKE_PROFIT_MARKET', 'buy', pos.contracts/2, params = {'positionSide': 'SHORT'});
+                await binanceClient.createOrder(market, 'limit', 'buy', pos.contracts/2, data['MediumCycleBottom'], paramsShort)
             }  
         }
     });
@@ -134,10 +143,11 @@ async function tick () {
 const run = async() => {
     tick()
 
-    //const d = new Date();
-    //const minutes = 3 - (d.getMinutes() % 3);
+//    const d = new Date();
+//    const minutes = 1 - (d.getMinutes() % 1);
+//    sleep(minutes*60*1000);
 
-    setInterval(tick, 30*1000)
+    setInterval(tick, 1*60*1000)
 };
 
 
